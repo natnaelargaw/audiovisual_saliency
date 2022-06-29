@@ -106,6 +106,7 @@ def acl_vgg(data, stateful):
     attention = TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2), padding='same'))(attention)
     attention = TimeDistributed(Conv2D(64, (1, 1), padding='same', activation='relu'))(attention)
     attention = TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu'))(attention)
+
     attention = TimeDistributed(Conv2D(1, (1, 1), padding='same', activation='sigmoid'))(attention)
     attention = TimeDistributed(UpSampling2D(4))(attention)
 
@@ -117,6 +118,8 @@ def acl_vgg(data, stateful):
     f_attention = TimeDistributed(RepeatVector(512))(f_attention)
     f_attention = TimeDistributed(Permute((2, 1)))(f_attention)
     f_attention = TimeDistributed(Reshape((32, 40, 512)))(f_attention)#30
+
+    # Residual ? <--
     m_outs = Multiply()([outs, f_attention])
     outs = Add()([outs, m_outs])
 

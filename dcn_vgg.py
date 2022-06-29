@@ -44,6 +44,7 @@ def dcn_vgg():
     model.add(Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1'))
     model.add(Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2'))
     model.add(Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3'))
+
     # Load weights
     weights_path = get_file('vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5', TF_WEIGHTS_PATH_NO_TOP,
                             cache_subdir='models')

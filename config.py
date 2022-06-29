@@ -5,6 +5,7 @@
 version = 0
 # batch size
 video_b_s = 2
+# image_b_s = 20
 image_b_s = 20
 # number of frames
 num_frames = 5
@@ -55,7 +56,8 @@ fixs_path = '/fixation/maps/'
 frames_path = '/images/'
 
 # number of training videos
-nb_train = 100
+# nb_train = 10800
+nb_train = 5000
 # number of validation videos
 nb_videos_val = 150
 
@@ -63,10 +65,10 @@ nb_videos_val = 150
 # TRAINING SETTINGS										            	#
 #########################################################################
 # path of training videos
-videos_train_paths = ['../DHF1K/train/']
+videos_train_paths = ['../DHF1K/Videos/train_video/']
 # path of validation videos
-videos_val_paths = ['../DHF1K/validation/']
-videos_test_path = '../DHF1K/test/'
+videos_val_paths = ['../DHF1K/Videos/validation_video/']
+videos_test_path = '../DHF1K/Videos/test_video/'
 
 # path of training maps
 maps_path = '/maps/'

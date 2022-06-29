@@ -13,7 +13,13 @@ import random
 from math import ceil
 
 import cv2 as cv
+# Time Distributed Layer
 
+# Resources: https://levelup.gitconnected.com/
+# hands-on-practice-with-time-distributed-layers-using-tensorflow-c776a5d78e7e
+# Resources: https://medium.com/smileinnovation/
+# how-to-work-with-time-distributed-data-in-a-neural-network-b8b39aa4ce00
+# Documentation architecture: https://github.com/lutzroeder/netron
 
 def generator(video_b_s, image_b_s, phase_gen='train'):
     if phase_gen == 'train':
@@ -23,10 +29,10 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
         # print(len(videos))
 
         # images = [imgs_path + 'images/' + f for f in os.listdir(imgs_path + 'images/') if f.endswith(('.jpg', '.jpeg', '.png'))]
-        images = [imgs_path + 'images/'+ video[-8:-4] +'/' + f for video in videos for f in os.listdir(imgs_path + 'images/'+video[-8:-4] +'/') if f.endswith(('.jpg', '.jpeg', '.png'))]
+        images = [imgs_path + 'train_images/'+ video[-8:-4] +'/' + f for video in videos for f in os.listdir(imgs_path + 'train_images/'+video[-8:-4] +'/') if f.endswith(('.jpg', '.jpeg', '.png'))]
 
-
-
+        nb_train = len(images)/image_b_s
+        print(nb_train, len(images))
         # fixationmaps = [imgs_path + 'maps/' + f for f in os.listdir(imgs_path + 'maps/') if f.endswith(('.jpg', '.jpeg', '.png'))]
         fixationmaps = [imgs_path +'annotation/0'+video[-7:-4] + '/maps/' + f for video in videos for f in os.listdir(imgs_path +'annotation/0'+video[-7:-4] +'/maps/') if f.endswith(('.jpg', '.jpeg', '.png'))]
 
@@ -65,7 +71,7 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
                     # images = [video_path + frames_path + f for f in os.listdir(video_path + frames_path) if
                     #           f.endswith(('.jpg', '.jpeg', '.png'))]
 
-                    images = [imgs_path +'images/' +  video_path[-7:-4]+'/' + f for f in os.listdir(imgs_path +'images/'+ video_path[-7:-4]+'/') if
+                    images = [imgs_path +'train_images/' +  video_path[-7:-4]+'/' + f for f in os.listdir(imgs_path +'train_images/'+ video_path[-7:-4]+'/') if
                               f.endswith(('.jpg', '.jpeg', '.png'))]
 
 
@@ -144,8 +150,8 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
                     # images = [video_path + frames_path + f for f in os.listdir(video_path + frames_path) if
                     #           f.endswith(('.jpg', '.jpeg', '.png'))]
 
-                    images = [imgs_path + 'images/' + video_path[-7:-4] + '/' + f for f in
-                              os.listdir(imgs_path + 'images/' + video_path[-7:-4] + '/') if
+                    images = [imgs_path + 'val_images/' + video_path[-7:-4] + '/' + f for f in
+                              os.listdir(imgs_path + 'val_images/' + video_path[-7:-4] + '/') if
                               f.endswith(('.jpg', '.jpeg', '.png'))]
 
 
@@ -237,14 +243,16 @@ if __name__ == '__main__':
                         validation_data=generator(video_b_s=video_b_s, image_b_s=0, phase_gen='val'),
                         validation_steps=nb_videos_val,
                         callbacks=[EarlyStopping(patience=15),
-                                    ModelCheckpoint('acl-vgg.{epoch:02d}-{val_loss:.4f}.h5', save_best_only=False),
+                                    ModelCheckpoint('acl-vgg.{epoch:02d}-{val_loss:.4f}.h5', save_best_only=True),
                                     LearningRateScheduler(schedule=schedule_vgg)])
 
         m.save('ACL.h5')
 
 
     elif phase == "test":
-        videos_test_path = '../DHF1K/test_imgs/'
+        # videos_test_path = '../DHF1K/test_imgs/'
+        result_path = '../DHF1K/annotation/'
+        videos_test_path = '../DHF1K/val_images/'
         videos = [videos_test_path + f for f in os.listdir(videos_test_path) if os.path.isdir(videos_test_path + f)]
 
         # for i in videos:
@@ -262,8 +270,10 @@ if __name__ == '__main__':
         m.load_weights('ACL.h5')
 
         for i in range(nb_videos_test):
+            # print(videos[i])
 
-            output_folder = videos[i] + '/saliency/'
+            output_folder = result_path + '0' + videos[i][-3:] + '/images/'
+            # print(output_folder)
             if not os.path.exists(output_folder):
                 os.makedirs(output_folder)
 
