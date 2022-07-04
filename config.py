@@ -57,7 +57,8 @@ frames_path = '/images/'
 
 # number of training videos
 # nb_train = 10800
-nb_train = 5000
+# nb_train = 5000
+nb_train = 500
 # number of validation videos
 nb_videos_val = 150
 

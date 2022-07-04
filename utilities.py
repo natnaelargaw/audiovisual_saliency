@@ -7,9 +7,10 @@ import cv2 as cv
 import numpy as np
 
 
-def imresize(image, shape=(224,224)):
+def imresize(image, shape=(224, 224)):
     img = cv.resize(image, shape)
     return img
+
 
 def padding(img, shape_r=240, shape_c=320, channels=3):
     img_padded = np.zeros((shape_r, shape_c, channels), dtype=np.uint8)
@@ -17,18 +18,19 @@ def padding(img, shape_r=240, shape_c=320, channels=3):
         img_padded = np.zeros((shape_r, shape_c), dtype=np.uint8)
 
     original_shape = img.shape
-    rows_rate = original_shape[0]/shape_r
-    cols_rate = original_shape[1]/shape_c
+    rows_rate = original_shape[0] / shape_r
+    cols_rate = original_shape[1] / shape_c
 
     if rows_rate > cols_rate:
         new_cols = (original_shape[1] * shape_r) // original_shape[0]
         img = imresize(img, (new_cols, shape_r))
         if new_cols > shape_c:
             new_cols = shape_c
-        img_padded[:, ((img_padded.shape[1] - new_cols) // 2):((img_padded.shape[1] - new_cols) // 2 + new_cols),] = img
+        img_padded[:,
+        ((img_padded.shape[1] - new_cols) // 2):((img_padded.shape[1] - new_cols) // 2 + new_cols), ] = img
     else:
         new_rows = (original_shape[0] * shape_c) // original_shape[1]
-        img = imresize(img, (shape_c,new_rows))
+        img = imresize(img, (shape_c, new_rows))
         if new_rows > shape_r:
             new_rows = shape_r
 
@@ -44,8 +46,8 @@ def resize_fixation(img, rows=480, cols=640):
 
     coords = np.argwhere(img)
     for coord in coords:
-        r = int(np.round(coord[0]*factor_scale_r))
-        c = int(np.round(coord[1]*factor_scale_c))
+        r = int(np.round(coord[0] * factor_scale_r))
+        c = int(np.round(coord[1] * factor_scale_c))
         if r == rows:
             r -= 1
         if c == cols:
@@ -59,15 +61,16 @@ def padding_fixation(img, shape_r=480, shape_c=640):
     img_padded = np.zeros((shape_r, shape_c))
 
     original_shape = img.shape
-    rows_rate = original_shape[0]/shape_r
-    cols_rate = original_shape[1]/shape_c
+    rows_rate = original_shape[0] / shape_r
+    cols_rate = original_shape[1] / shape_c
 
     if rows_rate > cols_rate:
         new_cols = (original_shape[1] * shape_r) // original_shape[0]
         img = resize_fixation(img, rows=shape_r, cols=new_cols)
         if new_cols > shape_c:
             new_cols = shape_c
-        img_padded[:, ((img_padded.shape[1] - new_cols) // 2):((img_padded.shape[1] - new_cols) // 2 + new_cols),] = img
+        img_padded[:,
+        ((img_padded.shape[1] - new_cols) // 2):((img_padded.shape[1] - new_cols) // 2 + new_cols), ] = img
     else:
         new_rows = (original_shape[0] * shape_c) // original_shape[1]
         img = resize_fixation(img, rows=new_rows, cols=shape_c)
@@ -78,21 +81,37 @@ def padding_fixation(img, shape_r=480, shape_c=640):
     return img_padded
 
 
-def preprocess_images(paths, shape_r, shape_c):
+def preprocess_images(paths, bin_paths, shape_r, shape_c):
     ims = np.zeros((len(paths), shape_r, shape_c, 3))
 
-    for i, path in enumerate(paths):
+    for i, (ori_path, bin_path) in enumerate(zip(paths, bin_paths)):
         # print(path)
-        original_image = cv.imread(path)
+        original_image = cv.imread(ori_path)
+        bin_image = cv.imread(bin_path)
         # original_image = mpimg.imread(path)
         # original_image = imread(path)
         # if original_image.ndim == 2:
+        copy = np.zeros((original_image.shape[0], original_image.shape[1], 3))
         if original_image.shape == 2:
-            copy = np.zeros((original_image.shape[0], original_image.shape[1], 3))
-            copy[:, :, 0] = original_image
-            copy[:, :, 1] = original_image
-            copy[:, :, 2] = original_image
+            # copy = np.zeros((original_image.shape[0], original_image.shape[1], 3))
+
+            # copy[:, :, 0] = original_image
+            # copy[:, :, 1] = original_image
+            # copy[:, :, 2] = original_image
+
+            copy[:, :, 0] = bin_image
+            copy[:, :, 1] = bin_image
+            copy[:, :, 2] = bin_image
+            # copy[:, :, 3] = bin_image
+        else:
+            copy[:, :, 0] = bin_image[:, :, 0]
+            copy[:, :, 1] = bin_image[:, :, 0]
+            copy[:, :, 2] = bin_image[:, :, 0]
+
             original_image = copy
+        # if original_image.shape[2] ==3:
+        #     original_image = merge_channels(original_image, bin_image)
+
         padded_image = padding(original_image, shape_r, shape_c, 3)
         ims[i] = padded_image
 
@@ -103,6 +122,35 @@ def preprocess_images(paths, shape_r, shape_c):
     # ims = ims.transpose((0, 3, 1, 2))
 
     return ims
+
+
+# def preprocess_images(paths, shape_r, shape_c):
+#     ims = np.zeros((len(paths), shape_r, shape_c, 3))
+#
+#     for i, path in enumerate(paths):
+#         # print(path)
+#         original_image = cv.imread(path)
+#         # original_image = mpimg.imread(path)
+#         # original_image = imread(path)
+#         # if original_image.ndim == 2:
+#         if original_image.shape == 2:
+#             copy = np.zeros((original_image.shape[0], original_image.shape[1], 3))
+#
+#             copy[:, :, 0] = original_image
+#             copy[:, :, 1] = original_image
+#             copy[:, :, 2] = original_image
+#
+#             original_image = copy
+#         padded_image = padding(original_image, shape_r, shape_c, 3)
+#         ims[i] = padded_image
+#
+#     ims[:, :, :, 0] -= 103.939
+#     ims[:, :, :, 1] -= 116.779
+#     ims[:, :, :, 2] -= 123.68
+#     ims = ims[:, :, :, ::-1]
+#     # ims = ims.transpose((0, 3, 1, 2))
+#
+#     return ims
 
 
 def preprocess_maps(paths, shape_r, shape_c):
@@ -145,9 +193,15 @@ def postprocess_predictions(pred, shape_r, shape_c):
         new_rows = (predictions_shape[0] * shape_c) // predictions_shape[1]
         # pred = cv2.resize(pred, (shape_c, new_rows))
         pred = imresize(pred, (new_rows, shape_c))
-        img = pred[((pred.shape[0] - shape_r) // 2):((pred.shape[0] - shape_r) // 2 + shape_r),:]
+        img = pred[((pred.shape[0] - shape_r) // 2):((pred.shape[0] - shape_r) // 2 + shape_r), :]
 
     img = scipy.ndimage.filters.gaussian_filter(img, sigma=7)
     img = img / np.max(img) * 255
 
     return img
+
+
+def merge_channels(rgb, binarized):
+    b, g, r = cv.split(rgb)
+    return cv.merge(b, g, r, binarized)
+

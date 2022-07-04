@@ -31,8 +31,10 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
         # images = [imgs_path + 'images/' + f for f in os.listdir(imgs_path + 'images/') if f.endswith(('.jpg', '.jpeg', '.png'))]
         images = [imgs_path + 'train_images/'+ video[-8:-4] +'/' + f for video in videos for f in os.listdir(imgs_path + 'train_images/'+video[-8:-4] +'/') if f.endswith(('.jpg', '.jpeg', '.png'))]
 
+        spatio_temporal_images = [imgs_path + 'residual_training/'+ video[-8:-4] +'/' + f for video in videos for f in os.listdir(imgs_path + 'residual_training/'+video[-8:-4] +'/') if f.endswith(('.jpg', '.jpeg', '.png'))]
+
         nb_train = len(images)/image_b_s
-        print(nb_train, len(images))
+        # print(nb_train, len(images))
         # fixationmaps = [imgs_path + 'maps/' + f for f in os.listdir(imgs_path + 'maps/') if f.endswith(('.jpg', '.jpeg', '.png'))]
         fixationmaps = [imgs_path +'annotation/0'+video[-7:-4] + '/maps/' + f for video in videos for f in os.listdir(imgs_path +'annotation/0'+video[-7:-4] +'/maps/') if f.endswith(('.jpg', '.jpeg', '.png'))]
 
@@ -41,11 +43,12 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
         fixs = [imgs_path +'annotation/0'+video[-7:-4] + '/fixation/maps/' + f for video in videos for f in os.listdir(imgs_path +'annotation/0'+video[-7:-4] + '/fixation/maps/') if f.endswith(('.mat'))]
 
         images.sort()
+        spatio_temporal_images.sort()
         fixationmaps.sort()
         fixs.sort()
         image_train_data = []
-        for image, fixationmap, fix in zip(images, fixationmaps, fixs):
-            annotation_data = {'image': image, 'fixmap': fixationmap, 'fix': fix}
+        for image, bin_img, fixationmap, fix in zip(images, spatio_temporal_images, fixationmaps, fixs):
+            annotation_data = {'image': image, 'stemp_image':bin_img,'fixmap': fixationmap, 'fix': fix} # changed
             image_train_data.append(annotation_data)
 
         random.shuffle(image_train_data)
@@ -74,6 +77,14 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
                     images = [imgs_path +'train_images/' +  video_path[-7:-4]+'/' + f for f in os.listdir(imgs_path +'train_images/'+ video_path[-7:-4]+'/') if
                               f.endswith(('.jpg', '.jpeg', '.png'))]
 
+                    spatio_temporal = [imgs_path + 'residual_training/' + video_path[-7:-4] + '/' + f for f in
+                              os.listdir(imgs_path + 'residual_training/' + video_path[-7:-4] + '/') if
+                              f.endswith(('.jpg', '.jpeg', '.png'))]
+
+                    # print(len(images), len(spatio_temporal))
+
+                    #merger function like images = images,spatio_temporal -- split 3 and merge 4
+
 
                     # maps = [video_path + maps_path + f for f in os.listdir(video_path + maps_path) if
                     #         f.endswith(('.jpg', '.jpeg', '.png'))]
@@ -92,7 +103,7 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
                     # maps.sort()
                     # fixs.sort()
                     start = random.randint(0, max(len(images) - num_frames, 0))
-                    X = preprocess_images(images[start:min(start + num_frames, len(images))], shape_r, shape_c)
+                    X = preprocess_images(images[start:min(start + num_frames, len(images))],spatio_temporal[start:min(start + num_frames, len(spatio_temporal))],  shape_r, shape_c)
                     Y = preprocess_maps(maps[start:min(start + num_frames, len(images))], shape_r_out, shape_c_out)
                     Y_fix = preprocess_fixmaps(fixs[start:min(start + num_frames, len(images))], shape_r_out,
                                                shape_c_out)
@@ -117,8 +128,10 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
                 Img_Yfixs = np.zeros((image_b_s, 1, shape_r_attention, shape_c_attention, 1)) + 0.01
                 for i in range(0, image_b_s):
                     img_data = image_train_data[(image_counter + i) % len(image_train_data)]
+                    # spatio_temporal_data = image_train_data[(image_counter + i) % len(image_train_data)]
 
-                    X = preprocess_images([img_data['image']], shape_r, shape_c)
+                    # X = preprocess_images([img_data['image']], shape_r, shape_c)
+                    X = preprocess_images([img_data['image']], [img_data['stemp_image']], shape_r, shape_c)
                     Y = preprocess_maps([img_data['fixmap']], shape_r_attention, shape_c_attention)
                     Y_fix = preprocess_fixmaps([img_data['fix']], shape_r_attention, shape_c_attention)
                     Xims[i, 0, :] = np.copy(X)
@@ -154,6 +167,14 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
                               os.listdir(imgs_path + 'val_images/' + video_path[-7:-4] + '/') if
                               f.endswith(('.jpg', '.jpeg', '.png'))]
 
+                    spatio_temporal = [imgs_path + 'residual_val/' + video_path[-7:-4] + '/' + f for f in
+                              os.listdir(imgs_path + 'residual_val/' + video_path[-7:-4] + '/') if
+                              f.endswith(('.jpg', '.jpeg', '.png'))]
+
+                    # print(len(images), len(spatio_temporal))
+
+
+
 
 
                     # maps = [video_path + maps_path + f for f in os.listdir(video_path + maps_path) if
@@ -173,19 +194,8 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
                             f.endswith('.mat')]
 
 
-
-
-
-
-
-
-
-
-
-
-
                     start = random.randint(0, max(len(images) - num_frames, 0))
-                    X = preprocess_images(images[start:min(start + num_frames, len(images))], shape_r, shape_c)
+                    X = preprocess_images(images[start:min(start + num_frames, len(images))],spatio_temporal[start:min(start + num_frames, len(spatio_temporal))], shape_r, shape_c)
                     Y = preprocess_maps(maps[start:min(start + num_frames, len(images))], shape_r_out, shape_c_out)
                     Y_fix = preprocess_fixmaps(fixs[start:min(start + num_frames, len(images))], shape_r_out,
                                                shape_c_out)
@@ -211,8 +221,9 @@ def get_test(video_test_path):
     images.sort()
     start = 0
     while True:
-        Xims = np.zeros((1, num_frames, shape_r, shape_c, 3))
-        X = preprocess_images(images[start:min(start + num_frames, len(images))], shape_r, shape_c)
+        Xims = np.zeros((1, num_frames, shape_r, shape_c, 3)) # change dimensionality
+
+        X = preprocess_images(images[start:min(start + num_frames, len(images))],images[start:min(start + num_frames, len(images))], shape_r, shape_c)
         Xims[0, 0:min(len(images)-start, num_frames), :] = np.copy(X)
         yield Xims  #
         start = min(start + num_frames, len(images))
@@ -221,9 +232,11 @@ def get_test(video_test_path):
 if __name__ == '__main__':
     phase = 'test'
     if phase == 'train':
+        # x = Input(batch_shape=(None, None, shape_r, shape_c, 3))
         x = Input(batch_shape=(None, None, shape_r, shape_c, 3))
         stateful = False
     else:
+        # x = Input(batch_shape=(1, None, shape_r, shape_c, 3))
         x = Input(batch_shape=(1, None, shape_r, shape_c, 3))
         stateful = True
 
@@ -252,7 +265,8 @@ if __name__ == '__main__':
     elif phase == "test":
         # videos_test_path = '../DHF1K/test_imgs/'
         result_path = '../DHF1K/annotation/'
-        videos_test_path = '../DHF1K/val_images/'
+        # videos_test_path = '../DHF1K/val_images/'
+        videos_test_path = '../DHF1K/residual_val/'
         videos = [videos_test_path + f for f in os.listdir(videos_test_path) if os.path.isdir(videos_test_path + f)]
 
         # for i in videos:
@@ -267,7 +281,7 @@ if __name__ == '__main__':
         m = Model(inputs=x, outputs=acl_vgg(x, stateful))
         print("Loading ACL weights")
 
-        m.load_weights('ACL.h5')
+        m.load_weights('Models/ACL500new_data_eroded.h5')
 
         for i in range(nb_videos_test):
             # print(videos[i])
