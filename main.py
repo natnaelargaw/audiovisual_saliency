@@ -230,7 +230,7 @@ def get_test(video_test_path):
 
 
 if __name__ == '__main__':
-    phase = 'test'
+    phase = 'train'
     if phase == 'train':
         # x = Input(batch_shape=(None, None, shape_r, shape_c, 3))
         x = Input(batch_shape=(None, None, shape_r, shape_c, 3))

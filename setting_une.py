@@ -37,7 +37,7 @@ class Self_regulatory_roi:
     def get_video(self):
 
         d = deque()
-        for i in range(600, 601):
+        for i in range(1,601):
             PREFIX = '000'
             VIDEO = (PREFIX + str(i))[-3:]
             # print(VIDEO)
@@ -141,6 +141,14 @@ class Self_regulatory_roi:
 
         # eroded_max = cv.erode(maximize, kernel)
 
+
+        r, g, b = cv.split(small_batch[0])
+        r = np.maximum(r, spatio_temporal_ready_frame)
+        g = np.maximum(g, spatio_temporal_ready_frame)
+        b = np.maximum(b, spatio_temporal_ready_frame)
+
+        spatio_temporal_ready_frame = cv.merge((r,g,b))
+
         # print(difference.shape)
 
         # cv.imshow("SelfShift Difference", difference)
@@ -172,7 +180,7 @@ class Self_regulatory_roi:
         # cv.imshow("eroded Max", eroded_max)
         cv.waitKey(1)
 
-        return eroded
+        return spatio_temporal_ready_frame
 
     def dequeImp(self, frameCount, queue):
         # if count < frameConstant:# In case of 42, around 4s queue accumulation time
