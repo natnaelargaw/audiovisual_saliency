@@ -81,13 +81,13 @@ def padding_fixation(img, shape_r=480, shape_c=640):
     return img_padded
 
 
-def preprocess_images(paths, bin_paths, shape_r, shape_c):
+def preprocess_images(paths, shape_r, shape_c):
     ims = np.zeros((len(paths), shape_r, shape_c, 3))
 
-    for i, (ori_path, bin_path) in enumerate(zip(paths, bin_paths)):
+    for i, ori_path in enumerate(paths):
         # print(path)
         original_image = cv.imread(ori_path)
-        bin_image = cv.imread(bin_path)
+        # bin_image = cv.imread(bin_path)
         # original_image = mpimg.imread(path)
         # original_image = imread(path)
         # if original_image.ndim == 2:
@@ -95,18 +95,18 @@ def preprocess_images(paths, bin_paths, shape_r, shape_c):
         if original_image.shape == 2:
             # copy = np.zeros((original_image.shape[0], original_image.shape[1], 3))
 
-            # copy[:, :, 0] = original_image
-            # copy[:, :, 1] = original_image
-            # copy[:, :, 2] = original_image
+            copy[:, :, 0] = original_image
+            copy[:, :, 1] = original_image
+            copy[:, :, 2] = original_image
 
-            copy[:, :, 0] = bin_image
-            copy[:, :, 1] = bin_image
-            copy[:, :, 2] = bin_image
+            # copy[:, :, 0] = bin_image
+            # copy[:, :, 1] = bin_image
+            # copy[:, :, 2] = bin_image
             # copy[:, :, 3] = bin_image
-        else:
-            copy[:, :, 0] = bin_image[:, :, 0]
-            copy[:, :, 1] = bin_image[:, :, 0]
-            copy[:, :, 2] = bin_image[:, :, 0]
+        # else:
+        #     copy[:, :, 0] = bin_image[:, :, 0]
+        #     copy[:, :, 1] = bin_image[:, :, 0]
+        #     copy[:, :, 2] = bin_image[:, :, 0]
 
             original_image = copy
         # if original_image.shape[2] ==3:

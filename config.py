@@ -58,7 +58,7 @@ frames_path = '/images/'
 # number of training videos
 # nb_train = 10800
 # nb_train = 5000
-nb_train = 1000
+nb_train = 2000
 # number of validation videos
 nb_videos_val = 150
 
@@ -66,9 +66,10 @@ nb_videos_val = 150
 # TRAINING SETTINGS										            	#
 #########################################################################
 # path of training videos
-videos_train_paths = ['../DHF1K/Videos/train_video/']
+videos_train_paths = ['/home/natnael/Documents/datasets/DHF1K/train_images/']
 # path of validation videos
-videos_val_paths = ['../DHF1K/Videos/validation_video/']
+videos_val_paths = ['/home/natnael/Documents/datasets/DHF1K/val_images/']
+
 videos_test_path = '../DHF1K/Videos/test_video/'
 
 # path of training maps
@@ -79,5 +80,5 @@ fixs_path = '/fixation/maps/'
 frames_path = '/images/'
 
 # path of training images
-imgs_path = '../DHF1K/'
+imgs_path = '/home/natnael/Documents/datasets/DHF1K/train_images/'
 # imgs_path = 'D:/code/attention/staticimages/training/'
