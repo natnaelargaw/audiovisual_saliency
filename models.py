@@ -2,6 +2,8 @@ from __future__ import division
 from keras.layers import Reshape, TimeDistributed, Flatten, RepeatVector, Permute, Multiply, Add, UpSampling2D
 from keras.layers.convolutional import Conv2D,MaxPooling2D
 from keras.layers.convolutional_recurrent import ConvLSTM2D
+from numpy import concatenate
+
 from dcn_vgg import dcn_vgg
 import keras.backend as K
 
@@ -99,7 +101,12 @@ def nss(y_true, y_pred):
 
 def acl_vgg(data, stateful):
     dcn = dcn_vgg()
-    outs = TimeDistributed(dcn)(data)
+    outs = TimeDistributed(dcn)(data[0])
+
+    outs2 = TimeDistributed(dcn)(data[1])
+    outs = Add()([outs, outs2])
+    # outs = concatenate(outs, outs2)
+
     attention = TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2), padding='same'))(outs)
     attention = TimeDistributed(Conv2D(64, (1, 1), padding='same', activation='relu'))(attention)
     attention = TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu'))(attention)
