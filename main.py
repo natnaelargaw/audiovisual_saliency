@@ -146,7 +146,7 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
 
     elif phase_gen == 'val':
         videos = [videos_val_path + f for videos_val_path in videos_val_paths for f in
-                  os.listdir(videos_val_path) if os.path.isfile(videos_val_path + f)]
+                  os.listdir(videos_val_path) if os.path.isdir(videos_val_path + f)]
 
         random.shuffle(videos)
 

@@ -80,6 +80,54 @@ def padding_fixation(img, shape_r=480, shape_c=640):
 
     return img_padded
 
+def preprocess_bin_images(paths, shape_r, shape_c):
+    ims = np.zeros((len(paths), shape_r, shape_c, 3))
+
+    # receives 5 frames at one time
+
+
+    for i, ori_path in enumerate(paths):
+        # print(path)
+        original_image = cv.imread(ori_path)
+        # bin_image = cv.imread(bin_path)
+        # original_image = mpimg.imread(path)
+        # original_image = imread(path)
+        # if original_image.ndim == 2:
+        copy = np.zeros((original_image.shape[0], original_image.shape[1], 3))
+        if original_image.shape == 2:
+            # copy = np.zeros((original_image.shape[0], original_image.shape[1], 3))
+
+            copy[:, :, 0] = original_image
+            copy[:, :, 1] = original_image
+            copy[:, :, 2] = original_image
+
+            # copy[:, :, 0] = bin_image
+            # copy[:, :, 1] = bin_image
+            # copy[:, :, 2] = bin_image
+            # copy[:, :, 3] = bin_image
+        # else:
+        #     copy[:, :, 0] = bin_image[:, :, 0]
+        #     copy[:, :, 1] = bin_image[:, :, 0]
+        #     copy[:, :, 2] = bin_image[:, :, 0]
+
+            original_image = copy
+        # if original_image.shape[2] ==3:
+        #     original_image = merge_channels(original_image, bin_image)
+
+        padded_image = padding(original_image, shape_r, shape_c, 3)
+
+        ims[i] = padded_image
+    # call process X here with 5 inputs
+    ims = process_X(ims)
+
+
+    ims[:, :, :, 0] -= 103.939
+    ims[:, :, :, 1] -= 116.779
+    ims[:, :, :, 2] -= 123.68
+    ims = ims[:, :, :, ::-1]
+    # ims = ims.transpose((0, 3, 1, 2))
+
+    return ims
 
 def preprocess_images(paths, shape_r, shape_c):
     ims = np.zeros((len(paths), shape_r, shape_c, 3))
@@ -205,3 +253,77 @@ def merge_channels(rgb, binarized):
     b, g, r = cv.split(rgb)
     return cv.merge(b, g, r, binarized)
 
+
+def process_X(small_batch):
+    processed_frames = []
+    for i in range(len(small_batch)):
+        if i == 0:
+            frame_current = small_batch[i]
+            frame_ref_left = small_batch[i + 1]
+            frame_ref_right = small_batch[i + 1]
+            # cv.imshow("Frame 1", frame_current)
+            # cv.waitKey(1)
+        elif i == 4:#last element
+
+            frame_current = small_batch[i]
+            frame_ref_left = small_batch[i - 1]
+            frame_ref_right = small_batch[i - 2]
+        else:
+            frame_current = small_batch[i]
+            frame_ref_left = small_batch[i - 1]
+            frame_ref_right = small_batch[i + 1]
+        processed_frames.append(transform(frame_current, frame_ref_left, frame_ref_right))
+    return processed_frames
+
+def transform(frames_current, frames_left,frames_right):
+    # print(len(small_batch))
+    frame_current = cv.cvtColor(frames_current, cv.COLOR_RGB2GRAY)
+    frame_past = cv.cvtColor(frames_left, cv.COLOR_RGB2GRAY)
+    frame_next = cv.cvtColor(frames_right, cv.COLOR_RGB2GRAY)
+
+    delta_future = cv.absdiff(frame_next, frame_current)
+    delta_past = cv.absdiff(frame_past, frame_current)
+
+    # bitwise or of temproal differences
+    img_bwo = cv.bitwise_or(delta_past, delta_future)
+
+    # Dilating and binarizing temporal differences
+    ret, thresh = cv.threshold(img_bwo, 25, 255, cv.THRESH_BINARY)
+    dilate_frame = cv.dilate(thresh, None, iterations=2)
+
+    # Is it required: ? to make more neighbour similarity
+    # blured_copy = cv.GaussianBlur(frame_current, (21, 21), 0)
+
+    # Shaked difference
+    subtracter = np.copy(frame_current)[1:frame_current.shape[0], 1:frame_current.shape[1]]
+    # print(subtracter.shape)
+
+    # print(subtracter.shape)
+    #
+    # difference = cv.absdiff(frame_current[0:frame_current.shape[0] - 1, 0:frame_current.shape[1] - 1], subtracter)
+    difference = frame_current[0:frame_current.shape[0] - 1, 0:frame_current.shape[1] - 1] - subtracter
+    shape = (360, 640)
+    plain = np.zeros(shape, dtype="uint8")
+    plain[0:frame_current.shape[0] - 1, 0:frame_current.shape[1] - 1] = difference
+    plain[frame_current.shape[0]:, frame_current.shape[1]:] = subtracter[subtracter.shape[0]:, subtracter.shape[1]:]
+
+    kernel = np.ones((3, 3), np.uint8)
+    eroded = cv.erode(plain, kernel)
+
+    # additive = cv.add(eroded ,dilate_frame)
+    spatio_temporal_ready_frame = cv.add(eroded, dilate_frame)
+
+    # eroded_max = cv.erode(maximize, kernel)
+
+
+    r, g, b = cv.split(frame_current)
+    r = np.maximum(r, spatio_temporal_ready_frame)
+    g = np.maximum(g, spatio_temporal_ready_frame)
+    b = np.maximum(b, spatio_temporal_ready_frame)
+
+    spatio_temporal_ready_frame = cv.merge((r,g,b))
+
+    cv.imshow(" Spatio Temporally Ready Frame ", spatio_temporal_ready_frame)
+
+    cv.waitKey(0)
+    return spatio_temporal_ready_frame
