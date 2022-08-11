@@ -68,7 +68,7 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
         while True:
             if loop % 2:
                 Xims = np.zeros((video_b_s, num_frames, shape_r, shape_c, 3))
-                Xims2 = np.zeros((video_b_s, num_frames, shape_r, shape_c, 3))
+                # Xims2 = np.zeros((video_b_s, num_frames, shape_r, shape_c, 3))
 
                 Ymaps = np.zeros((video_b_s, num_frames, shape_r_out, shape_c_out, 1)) + 0.01
                 Yfixs = np.zeros((video_b_s, num_frames, shape_r_out, shape_c_out, 1)) + 0.01
@@ -108,13 +108,13 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
                     # fixs.sort()
                     start = random.randint(0, max(len(images) - num_frames, 0))
                     X = preprocess_images(images[start:min(start + num_frames, len(images))], shape_r, shape_c)
-                    X2 = preprocess_bin_images(images[start:min(start + num_frames, len(images))], shape_r, shape_c)
+                    # X2 = preprocess_bin_images(images[start:min(start + num_frames, len(images))], shape_r, shape_c)
 
                     Y = preprocess_maps(maps[start:min(start + num_frames, len(images))], shape_r_out, shape_c_out)
                     Y_fix = preprocess_fixmaps(fixs[start:min(start + num_frames, len(images))], shape_r_out,
                                                shape_c_out)
                     Xims[i, 0:X.shape[0], :] = np.copy(X)
-                    Xims2[i, 0:X.shape[0], :] = np.copy(X2)
+                    # Xims2[i, 0:X.shape[0], :] = np.copy(X2)
 
                     Ymaps[i, 0:Y.shape[0], :] = np.copy(Y)
                     Yfixs[i, 0:Y_fix.shape[0], :] = np.copy(Y_fix)
@@ -123,12 +123,12 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
                     Ymaps[i, Y.shape[0]:num_frames, :] = np.copy(Y[-1, :, :])
                     Yfixs[i, Y_fix.shape[0]:num_frames, :] = np.copy(Y_fix[-1, :, :])
 
-                yield [Xims, Xims2], [Ymaps, Ymaps, Yfixs, Img_Ymaps, Img_Ymaps, Img_Yfixs]  # add second input here
+                yield Xims, [Ymaps, Ymaps, Yfixs, Img_Ymaps, Img_Ymaps, Img_Yfixs]  # add second input here
                 video_counter = (video_counter + video_b_s) % len(videos)
                 loop = loop + 1
             else:
                 Xims = np.zeros((image_b_s, 1, shape_r, shape_c, 3))
-                Xims2 = np.zeros((image_b_s, 1, shape_r, shape_c, 3))
+                # Xims2 = np.zeros((image_b_s, 1, shape_r, shape_c, 3))
 
                 Ymaps = np.zeros((image_b_s, 1, shape_r_out, shape_c_out, 1)) + 0.01
                 Yfixs = np.zeros((image_b_s, 1, shape_r_out, shape_c_out, 1)) + 0.01
@@ -141,18 +141,18 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
 
                     # X = preprocess_images([img_data['image']], shape_r, shape_c)
                     X = preprocess_images([img_data['image']], shape_r, shape_c)
-                    X2 = preprocess_bin_images([img_data['image']], shape_r, shape_c)
+                    # X2 = preprocess_bin_images([img_data['image']], shape_r, shape_c)
 
                     Y = preprocess_maps([img_data['fixmap']], shape_r_attention, shape_c_attention)
                     Y_fix = preprocess_fixmaps([img_data['fix']], shape_r_attention, shape_c_attention)
 
                     Xims[i, 0, :] = np.copy(X)
-                    Xims2[i, 0, :] = np.copy(X2)
+                    # Xims2[i, 0, :] = np.copy(X2)
 
                     Img_Ymaps[i, 0, :] = np.copy(Y)
                     Img_Yfixs[i, 0, :] = np.copy(Y_fix)
 
-                yield [Xims, Xims2], [Ymaps, Ymaps, Yfixs, Img_Ymaps, Img_Ymaps, Img_Yfixs]  # #
+                yield Xims, [Ymaps, Ymaps, Yfixs, Img_Ymaps, Img_Ymaps, Img_Yfixs]  # #
                 image_counter = (image_counter + image_b_s) % len(image_train_data)
                 loop = loop + 1
 
@@ -166,7 +166,7 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
         while True:
 
             Xims = np.zeros((video_b_s, num_frames, shape_r, shape_c, 3))
-            Xims2 = np.zeros((video_b_s, num_frames, shape_r, shape_c, 3))
+            # Xims2 = np.zeros((video_b_s, num_frames, shape_r, shape_c, 3))
 
             Ymaps = np.zeros((video_b_s, num_frames, shape_r_out, shape_c_out, 1)) + 0.01
             Yfixs = np.zeros((video_b_s, num_frames, shape_r_out, shape_c_out, 1)) + 0.01
@@ -204,7 +204,7 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
 
                 start = random.randint(0, max(len(images) - num_frames, 0))
                 X = preprocess_images(images[start:min(start + num_frames, len(images))], shape_r, shape_c)
-                X2 = preprocess_bin_images(images[start:min(start + num_frames, len(images))], shape_r, shape_c)
+                # X2 = preprocess_bin_images(images[start:min(start + num_frames, len(images))], shape_r, shape_c)
 
                 Y = preprocess_maps(maps[start:min(start + num_frames, len(images))], shape_r_out, shape_c_out)
                 Y_fix = preprocess_fixmaps(fixs[start:min(start + num_frames, len(images))], shape_r_out,
@@ -214,52 +214,53 @@ def generator(video_b_s, image_b_s, phase_gen='train'):
                 Yfixs[i, 0:Y_fix.shape[0], :] = np.copy(Y_fix)
 
                 Xims[i, X.shape[0]:num_frames, :] = np.copy(X[-1, :, :])
-                Xims2[i, X.shape[0]:num_frames, :] = np.copy(X2[-1, :, :])
+                # Xims2[i, X.shape[0]:num_frames, :] = np.copy(X2[-1, :, :])
 
                 Ymaps[i, Y.shape[0]:num_frames, :] = np.copy(Y[-1, :, :])
                 Yfixs[i, Y_fix.shape[0]:num_frames, :] = np.copy(Y_fix[-1, :, :])
 
-            yield [Xims, Xims2], [Ymaps, Ymaps, Yfixs, Img_Ymaps, Img_Ymaps, Img_Yfixs]  # add second input here
+            yield Xims, [Ymaps, Ymaps, Yfixs, Img_Ymaps, Img_Ymaps, Img_Yfixs]  # add second input here
             video_counter = (video_counter + video_b_s) % len(videos)
     else:
         raise NotImplementedError
 
 
 def get_test(video_test_path):
-    images = [video_test_path + frames_path + '/' + f for f in os.listdir(video_test_path + frames_path) if
+
+    print("Video Test Path - ", video_test_path)
+    images = [video_test_path + frames_path + f for f in os.listdir(video_test_path + frames_path) if
               f.endswith(('.jpg', '.jpeg', '.png'))]
 
-    # print(len(images))
+    # print("from get test", len(images))
     images.sort()
     start = 0
     while True:
         Xims = np.zeros((1, num_frames, shape_r, shape_c, 3))  # change dimensionality
-        Xims2 = np.zeros((1, num_frames, shape_r, shape_c, 3))  # change dimensionality
-
-        X = preprocess_images(images[start:min(start + num_frames, len(images))],
-                              images[start:min(start + num_frames, len(images))], shape_r, shape_c)
-        X2 = preprocess_bin_images(images[start:min(start + num_frames, len(images))],
-                                   images[start:min(start + num_frames, len(images))], shape_r, shape_c)
+        # Xims2 = np.zeros((1, num_frames, shape_r, shape_c, 3))  # change dimensionality
+        # print("Shape Xims", Xims.shape)
+        X = preprocess_images(images[start:min(start + num_frames, len(images))], shape_r, shape_c)
+        # X2 = preprocess_bin_images(images[start:min(start + num_frames, len(images))], shape_r, shape_c)
 
         Xims[0, 0:min(len(images) - start, num_frames), :] = np.copy(X)
-        Xims2[0, 0:min(len(images) - start, num_frames), :] = np.copy(X2)
+        # Xims2[0, 0:min(len(images) - start, num_frames), :] = np.copy(X2)
 
-        yield [Xims, Xims2]  #
+        yield Xims
+        # print(Xims.shape)
         start = min(start + num_frames, len(images))
-
 
 if __name__ == '__main__':
     phase = 'train'
     if phase == 'train':
+
         # x = Input(batch_shape=(None, None, shape_r, shape_c, 3))
-        x = Input(batch_shape=(None, None, shape_r, shape_c, 3))
-        x2 = Input(batch_shape=(None, None, shape_r, shape_c, 3))
+        x = Input(shape=(None, shape_r, shape_c, 3))
+        # x2 = Input(batch_shape=(None, None, shape_r, shape_c, 3))
         stateful = False
     else:
         # x = Input(batch_shape=(1, None, shape_r, shape_c, 3))
         x = Input(batch_shape=(1, None, shape_r, shape_c, 3))
-        x2 = Input(batch_shape=(1, None, shape_r, shape_c, 3))
         stateful = True
+
 
     if phase == 'train':
         if nb_train % video_b_s != 0 or nb_videos_val % video_b_s != 0:
@@ -267,11 +268,11 @@ if __name__ == '__main__':
                   "Please change your batch size in config.py accordingly.")
             exit()
 
-        m = Model(inputs=[x,x2], outputs=acl_vgg([x,x2], stateful))
+        m = Model(inputs=x, outputs=acl_vgg(x, stateful))
         print("Compiling ACL-VGG")
         m.compile(Adam(lr=1e-4),
                   loss=[kl_divergence, correlation_coefficient, nss, kl_divergence, correlation_coefficient,
-                        nss])  #
+                        nss])
         print("Training ACL-VGG")
         m.fit_generator(generator(video_b_s=video_b_s, image_b_s=image_b_s), nb_train, epochs=nb_epoch,
                         validation_data=generator(video_b_s=video_b_s, image_b_s=0, phase_gen='val'),
@@ -282,39 +283,47 @@ if __name__ == '__main__':
 
         m.save('ACL.h5')
 
-
     elif phase == "test":
 
         # Cross check and adjust
         # videos_test_path = '../DHF1K/test_imgs/'
-        result_path = '../DHF1K/annotation/'
+        result_path = '/home/natnael/Documents/datasets/DHF1K/val_images/'
         # videos_test_path = '../DHF1K/val_images/'
-        videos_test_path = '../DHF1K/residual_val/'
+        videos_test_path = '/home/natnael/Documents/datasets/DHF1K/val_images/'
         videos = [videos_test_path + f for f in os.listdir(videos_test_path) if os.path.isdir(videos_test_path + f)]
 
         # for i in videos:
         #     print(i)
         videos.sort()
-        # print(videos[0])
 
         nb_videos_test = len(videos)
+        # print(videos[99])
 
         m = Model(inputs=x, outputs=acl_vgg(x, stateful))
         print("Loading ACL weights")
+        # m = Model(inputs=x, outputs=acl_vgg(x, stateful))
+        # print("Loading ACL weights")
 
-        m.load_weights('Models/ACL500new_data_eroded.h5')
-
-        for i in range(nb_videos_test):
+        m.load_weights('ACL.h5')
+        for i in range(25, nb_videos_test):
+            # print(videos[i])
             # print(videos[i])
 
-            output_folder = result_path + '0' + videos[i][-3:] + '/images/'
+            output_folder = videos[i] + '/saliency/'
             # print(output_folder)
             if not os.path.exists(output_folder):
                 os.makedirs(output_folder)
 
-            images_names = [f for f in os.listdir(videos_test_path + videos[i][-4:] + '/') if
+            images_names = [f for f in os.listdir(videos[i] +frames_path) if
                             f.endswith(('.jpg', '.jpeg', '.png'))]
+
+
             images_names.sort()
+
+            print(len(images_names), "Image count")
+            # print(images_names[0])
+            # print(len(images_names))
+
 
             print("Predicting saliency maps for " + videos[i])
             prediction = m.predict_generator(get_test(video_test_path=videos[i]),
@@ -322,7 +331,7 @@ if __name__ == '__main__':
             predictions = prediction[0]
 
             for j in range(len(images_names)):
-                original_image = cv.imread(videos[i] + '/' + images_names[j])
+                original_image = cv.imread(videos[i] + frames_path + images_names[j])
                 x, y = divmod(j, num_frames)
                 res = postprocess_predictions(predictions[x, y, :, :, 0], original_image.shape[0],
                                               original_image.shape[1])

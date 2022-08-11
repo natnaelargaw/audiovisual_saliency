@@ -3,6 +3,7 @@ from keras.layers import Reshape, TimeDistributed, Flatten, RepeatVector, Permut
 from keras.layers.convolutional import Conv2D,MaxPooling2D
 from keras.layers.convolutional_recurrent import ConvLSTM2D
 from numpy import concatenate
+from tensorflow.python.keras.layers import Concatenate, BatchNormalization, MaxPooling3D
 
 from dcn_vgg import dcn_vgg
 import keras.backend as K
@@ -98,43 +99,164 @@ def nss(y_true, y_pred):
 
     return -K.sum(y_bool*((K.sum(y_true * y_pred, axis=[2, 3, 4])) / (K.sum(y_true, axis=[2, 3, 4]))))
 
+# Let's use pure LSTM with VGG - and preprocessing layer. The preprocessing layer shall have merged effect.
+# the encoder is VGG with LSTM
+# the decoder is conv2D
+# No Conv2D in the encoder part.
 
+# Model 1  - VGG  + Two consecuative ConvLSTM
 def acl_vgg(data, stateful):
     dcn = dcn_vgg()
-    outs = TimeDistributed(dcn)(data[0])
+    # print(data[0].shape, "Shape of orignal data") # DCN downsamples the image by 8 X 8
 
-    outs2 = TimeDistributed(dcn)(data[1])
-    outs = Add()([outs, outs2])
-    # outs = concatenate(outs, outs2)
+    outs = TimeDistributed(dcn)(data)
+    # outs = dcn(data) #DCN downsamples the image by 8 X 8
 
-    attention = TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2), padding='same'))(outs)
-    attention = TimeDistributed(Conv2D(64, (1, 1), padding='same', activation='relu'))(attention)
-    attention = TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu'))(attention)
-    attention = TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2), padding='same'))(attention)
-    attention = TimeDistributed(Conv2D(64, (1, 1), padding='same', activation='relu'))(attention)
-    attention = TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu'))(attention)
+    print(outs.shape, " After VGG")
+    layer = ConvLSTM2D(filters=256, kernel_size=(3, 3)
+                       , data_format='channels_last'
+                       , recurrent_activation='hard_sigmoid'
+                       , activation='tanh'
+                       , padding='same', return_sequences=True, stateful=stateful)(outs) # 32 x40x 256
 
-    attention = TimeDistributed(Conv2D(1, (1, 1), padding='same', activation='sigmoid'))(attention)
-    attention = TimeDistributed(UpSampling2D(4))(attention)
+    print(layer.shape, " After First ConvLSTM" )
 
-    # attention = TimeDistributed(Conv2D(256, (3, 3), padding='same', activation='relu'))(outs)
-    # attention = TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu'))(attention)
-    # attention = TimeDistributed(Conv2D(1, (1, 1), padding='same', activation='sigmoid'))(attention)
+    layer = ConvLSTM2D(filters=256, kernel_size=(3, 3)
+                                 , data_format='channels_last'
+                                 , padding='same', return_sequences=True, stateful=stateful)(layer)
 
-    f_attention = TimeDistributed(Flatten())(attention)
-    f_attention = TimeDistributed(RepeatVector(512))(f_attention)
-    f_attention = TimeDistributed(Permute((2, 1)))(f_attention)
-    f_attention = TimeDistributed(Reshape((32, 40, 512)))(f_attention)#30
+    print(layer.shape, " After Second LSTM")
 
-    # Residual ? <--
-    m_outs = Multiply()([outs, f_attention])
-    outs = Add()([outs, m_outs])
+    outs = TimeDistributed(Conv2D(1, (1, 1), padding='same', activation='sigmoid'))(layer)
 
-    outs = (ConvLSTM2D(filters=256, kernel_size=(3, 3),
-                       padding='same', return_sequences=True, stateful=stateful, dropout=0.4))(outs)
-
-    outs = TimeDistributed(Conv2D(1, (1, 1), padding='same', activation='sigmoid'))(outs)
+    attention = TimeDistributed(UpSampling2D(2))(outs)
     outs = TimeDistributed(UpSampling2D(4))(outs)
-    attention = TimeDistributed(UpSampling2D(2))(attention)
-    return [outs, outs, outs, attention, attention, attention]#
 
+    print(outs.shape, attention.shape)
+    return [outs, outs, outs, attention, attention, attention]
+
+## Model 2 - ?
+# def acl_vgg(data, stateful):
+#     dcn = dcn_vgg()
+#     # print(data[0].shape, "Shape of orignal data") # DCN downsamples the image by 8 X 8
+#
+#     outs = TimeDistributed(dcn)(data)
+#     # outs = dcn(data) #DCN downsamples the image by 8 X 8
+#
+#     print(outs.shape, " After VGG")
+#     layer = ConvLSTM2D(filters=256, kernel_size=(3, 3)
+#                        , data_format='channels_last'
+#                        , recurrent_activation='hard_sigmoid'
+#                        , activation='tanh'
+#                        , padding='same', return_sequences=True, stateful=stateful)(outs) # 32 x40x 256
+#
+#     print(layer.shape, " After First ConvLSTM" )
+#
+#     layer = ConvLSTM2D(filters=256, kernel_size=(3, 3)
+#                                  , data_format='channels_last'
+#                                  , padding='same', return_sequences=True, stateful=stateful)(layer)
+#
+#     print(layer.shape, " After Second LSTM" )
+#
+#     outs = TimeDistributed(Conv2D(1, (1, 1), padding='same', activation='sigmoid'))(layer)
+#
+#     attention = TimeDistributed(UpSampling2D(2))(outs)
+#     outs = TimeDistributed(UpSampling2D(4))(outs)
+#
+#     print(outs.shape, attention.shape)
+#     return [outs, outs, outs, attention, attention, attention]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Model A  - Orignal Model
+# After VGG  (None, None, 32, 40, 512)
+# Attention Size  (None, None, 32, 40, 1)
+# Before LSTM  (None, None, 32, 40, 512)
+# After First LSTM  (None, None, 32, 40, 256)
+# Outs Shape  (None, None, 32, 40, 1)
+# (None, None, 128, 160, 1) (None, None, 64, 80, 1)
+
+# def acl_vgg(data, stateful):
+#     dcn = dcn_vgg()
+#     # print(data[0].shape, "Shape of orignal data") # DCN downsamples the image by 8 X 8
+#     # outs = TimeDistributed(dcn)(data[0])
+#     outs = TimeDistributed(dcn)(data) #DCN downsamples the image by 8 X 8
+#     print("After VGG ", outs.shape)
+#     # downsampled = TimeDistributed(Conv2D(512, (3, 3), padding='same', activation='relu'))(data[1])
+#     # downsampled = TimeDistributed(MaxPooling2D((2, 2), strides=(8, 8), padding='same'))(downsampled)
+#     # outs = Add()([outs, downsampled])
+#
+#
+#     attention = TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2), padding='same'))(outs)
+#     attention = TimeDistributed(Conv2D(64, (1, 1), padding='same', activation='relu'))(attention)
+#     attention = TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu'))(attention)
+#     attention = TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2), padding='same'))(attention)
+#     attention = TimeDistributed(Conv2D(64, (1, 1), padding='same', activation='relu'))(attention)
+#     attention = TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu'))(attention)
+#
+#     attention = TimeDistributed(Conv2D(1, (1, 1), padding='same', activation='sigmoid'))(attention)
+#     attention = TimeDistributed(UpSampling2D(4))(attention)
+#
+#     print("Attention Size ", attention.shape) #32 x 40 x 1
+#
+#     # attention = TimeDistributed(Conv2D(256, (3, 3), padding='same', activation='relu'))(outs)
+#     # attention = TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu'))(attention)
+#     # attention = TimeDistributed(Conv2D(1, (1, 1), padding='same', activation='sigmoid'))(attention)
+#
+#     f_attention = TimeDistributed(Flatten())(attention)
+#     f_attention = TimeDistributed(RepeatVector(512))(f_attention)
+#     f_attention = TimeDistributed(Permute((2, 1)))(f_attention)
+#     f_attention = TimeDistributed(Reshape((32, 40, 512)))(f_attention)#30
+#
+#     # Residual ? <--
+#     m_outs = Multiply()([outs, f_attention])
+#     outs = Add()([outs, m_outs])
+#     print("Before LSTM ", outs.shape)
+#     outs = (ConvLSTM2D(filters=256, kernel_size=(3, 3),
+#                        padding='same', return_sequences=True, stateful=stateful, dropout=0.4))(outs)
+#
+#     print("After First LSTM ", outs.shape)
+#
+#     outs = TimeDistributed(Conv2D(1, (1, 1), padding='same', activation='sigmoid'))(outs)
+#
+#     print("Outs Shape ", outs.shape)
+#     outs = TimeDistributed(UpSampling2D(4))(outs)
+#     attention = TimeDistributed(UpSampling2D(2))(attention)
+#
+#     print(outs.shape, attention.shape)
+#     return [outs, outs, outs, attention, attention, attention]

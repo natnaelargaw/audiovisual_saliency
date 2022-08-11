@@ -294,16 +294,16 @@ def transform(fc, fl,fr):
     # frame_next = cv.cvtColor(fr, cv.COLOR_RGB2GRAY)
 
 
-    delta_future = cv.absdiff(frame_next, frame_current)
+    # delta_future = cv.absdiff(frame_next, frame_current)
     delta_past = cv.absdiff(frame_past, frame_current)
 
 
 
     # bitwise or of temproal differences
-    img_bwo = cv.bitwise_or(delta_past, delta_future)
+    # img_bwo = cv.bitwise_or(delta_past, delta_future)
 
-    kernel = np.ones((3, 3), np.uint8)
-    img_bwo = cv.erode(img_bwo, kernel)
+    # kernel = np.ones((3, 3), np.uint8)
+    # img_bwo = cv.erode(img_bwo, kernel)
 
     # Dilating and binarizing temporal differences
     # ret, thresh = cv.threshold(img_bwo, 25, 255, cv.THRESH_BINARY)
@@ -316,6 +316,7 @@ def transform(fc, fl,fr):
     # subtracter = np.copy(frame_current)[1:frame_current.shape[0], 1:frame_current.shape[1]]
     # print(subtracter.shape)
 
+    thresholded = cv.threshold(delta_past, 75,255,cv.THRESH_BINARY)[1]
 
 
     # print(subtracter.shape)
@@ -329,6 +330,8 @@ def transform(fc, fl,fr):
     # plain[0:frame_current.shape[0] - 1, 0:frame_current.shape[1] - 1] = difference
     # plain[frame_current.shape[0]:, frame_current.shape[1]:] = subtracter[subtracter.shape[0]:, subtracter.shape[1]:]
 
+    dilate_frame = cv.dilate(thresholded, None, iterations=2)
+
 
     # kernel = np.ones((3, 3), np.uint8)
     # eroded = cv.erode(plain, kernel)
@@ -340,9 +343,9 @@ def transform(fc, fl,fr):
     #
     #
     r, g, b = cv.split(fc)
-    r = np.maximum(r, img_bwo)
-    g = np.maximum(g, img_bwo)
-    b = np.maximum(b, img_bwo)
+    r = np.maximum(r, dilate_frame)
+    g = np.maximum(g, dilate_frame)
+    b = np.maximum(b, dilate_frame)
     #
     spatio_temporal_ready_frame = cv.merge((r,g,b))
 

@@ -9,16 +9,16 @@ function [allmetrics, meanmetrics, frames] = metrics_entry()
 %     end
 
     
-    options.IMG_DIR = '../../DHF1K/annotation/*/images/';
-    options.DS_GT_DIR = '../../DHF1K/annotation/';
-    options.SALIENCY_DIR = '../../DHF1K/results/';
+    options.IMG_DIR = '/home/natnael/Documents/datasets/DHF1K/val_images/*/saliency/';
+    options.DS_GT_DIR = '/home/natnael/Documents/datasets/DHF1K/val_images/';
+    options.SALIENCY_DIR = '/home/natnael/Documents/datasets/DHF1K/val_images/results';
 
-    [allmetrics, meanmetrics, frames] = evaluationFunc(options, 'NSS');
-%      [allmetrics, meanmetrics, frames] = evaluationFunc(options, 'CC');
-%       [allmetrics, meanmetrics, frames] = evaluationFunc(options, 'AUC_shuffled');
+%    [allmetrics, meanmetrics, frames] = evaluationFunc(options, 'NSS');
+%     [allmetrics, meanmetrics, frames] = evaluationFunc(options, 'CC');
+    [allmetrics, meanmetrics, frames] = evaluationFunc(options, 'AUC_shuffled');
 %      [allmetrics, meanmetrics, frames] = evaluationFunc(options, 'AUC_Judd');
 
-%     [allmetrics, meanmetrics, frames] = evaluationFunc(options, 'similarity');
+%      [allmetrics, meanmetrics, frames] = evaluationFunc(options, 'similarity');
 
 
 

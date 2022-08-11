@@ -46,10 +46,10 @@ for i = 1:min(nframe, 50000)
     gt_fold = strrep(gt_fold, '\','/');
     gt_name = frames(i).name;
     
-    map_gt_path = strrep(gt_fold,'/images', '/maps/');
-    fix_gt_path = strrep(gt_fold,'/images', '/fixation/maps/');
+    map_gt_path = strrep(gt_fold,'/saliency', '/maps/');
+    fix_gt_path = strrep(gt_fold,'/saliency', '/fixation/maps/');
 %     map_eval_path = strrep(gt_fold, options.DS_GT_DIR, options.SALIENCY_DIR);
-    map_eval_path = [gt_fold , 'images' ];
+    map_eval_path = gt_fold;
     
     saliency_path = [map_gt_path, gt_name];
     
@@ -61,9 +61,14 @@ for i = 1:min(nframe, 50000)
     
     load(fixation_path);
     
-    result = double(imread([map_eval_path(1:end-6),'/',gt_name]));
+    result = double(imread([map_eval_path,'/',gt_name]));
+    
     result = result(:,:,1);
     result = imresize(result, [size(I,1) size(I,2)]);
+
+%     disp([map_eval_path, '/',gt_name]);
+%     disp(saliency_path);
+%     disp(fixation_path);
     if any(strcmp(metricName, {'similarity','CC', 'EMD'}))
         if exist(saliency_path, 'file')
             I = double(imread(saliency_path))/255;
@@ -92,9 +97,9 @@ for i = 1:min(nframe, 50000)
                 fx_fold = frames(ids(k)).folder;
                 fx_fold = strrep(fx_fold, '\','/');
 
-                fix_path = strrep(fx_fold,'/images', '/fixation/maps/');
+                fix_path = strrep(fx_fold,'/saliency', '/fixation/maps/');
                 fixation_pathx = [fix_path, strrep(fx_name, postfix, '.mat')];
-                
+               
                 Ix = load(fixation_pathx);
                 Ix = double(Ix.I);
                 training_resolution = size(Ix);
